@@ -15,6 +15,7 @@ Local Docker services:
 - `postgres`
 - `kafka`
 - `kafka-connect`
+- `kafka-ui`
 - `python-bq-consumer`
 - `airflow`
 
@@ -53,6 +54,8 @@ docs/         Interview notes, diagrams, and troubleshooting
    ```
 
 Airflow is available at `http://localhost:8080` with the default credentials in `.env.example`.
+
+Kafka UI is available at `http://localhost:8081`.
 
 ## PostgreSQL Source Database
 
