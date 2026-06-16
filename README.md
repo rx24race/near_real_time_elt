@@ -85,6 +85,30 @@ docker compose exec postgres psql -U postgres -d ecommerce -v ON_ERROR_STOP=1 -f
 docker compose exec postgres psql -U postgres -d ecommerce -v ON_ERROR_STOP=1 -f /opt/project/scripts/delete_record.sql
 ```
 
+## Debezium CDC
+
+Register the PostgreSQL Debezium connector after the stack is running:
+
+```bash
+./scripts/register_debezium_connector.sh
+```
+
+PowerShell users can run:
+
+```powershell
+.\scripts\register_debezium_connector.ps1
+```
+
+The connector captures `customers`, `products`, `orders`, `order_items`, and `payments`, then writes CDC events to:
+
+- `postgres.customers`
+- `postgres.products`
+- `postgres.orders`
+- `postgres.order_items`
+- `postgres.payments`
+
+More details are in `docs/debezium.md`.
+
 ## Current Status
 
-Stories 1 and 2 create the Docker Compose foundation and PostgreSQL source database. Later stories add the Debezium connector registration, BigQuery Bronze table, Dataform transformations, and Airflow DAGs.
+Stories 1 through 3 create the Docker Compose foundation, PostgreSQL source database, and Debezium CDC setup. Later stories add the BigQuery Bronze table, Dataform transformations, and Airflow DAGs.
