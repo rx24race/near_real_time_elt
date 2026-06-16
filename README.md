@@ -54,6 +54,37 @@ docs/         Interview notes, diagrams, and troubleshooting
 
 Airflow is available at `http://localhost:8080` with the default credentials in `.env.example`.
 
+## PostgreSQL Source Database
+
+The source database initializes with e-commerce OLTP tables and seed data:
+
+- `customers`
+- `products`
+- `orders`
+- `order_items`
+- `payments`
+
+For a fresh local environment, the SQL files in `postgres/init/` run automatically when the Postgres volume is created.
+
+If the Postgres container already existed before these files were added, apply them manually:
+
+```bash
+docker compose exec postgres psql -U postgres -d ecommerce -v ON_ERROR_STOP=1 -f /docker-entrypoint-initdb.d/001_create_source_tables.sql
+docker compose exec postgres psql -U postgres -d ecommerce -v ON_ERROR_STOP=1 -f /docker-entrypoint-initdb.d/002_seed_source_data.sql
+```
+
+Demo SQL scripts are mounted into the Postgres container at `/opt/project/scripts`:
+
+```bash
+docker compose exec postgres psql -U postgres -d ecommerce -v ON_ERROR_STOP=1 -f /opt/project/scripts/insert_new_customer.sql
+docker compose exec postgres psql -U postgres -d ecommerce -v ON_ERROR_STOP=1 -f /opt/project/scripts/update_customer_city.sql
+docker compose exec postgres psql -U postgres -d ecommerce -v ON_ERROR_STOP=1 -f /opt/project/scripts/update_customer_tier.sql
+docker compose exec postgres psql -U postgres -d ecommerce -v ON_ERROR_STOP=1 -f /opt/project/scripts/create_order.sql
+docker compose exec postgres psql -U postgres -d ecommerce -v ON_ERROR_STOP=1 -f /opt/project/scripts/create_order_items.sql
+docker compose exec postgres psql -U postgres -d ecommerce -v ON_ERROR_STOP=1 -f /opt/project/scripts/create_payment.sql
+docker compose exec postgres psql -U postgres -d ecommerce -v ON_ERROR_STOP=1 -f /opt/project/scripts/delete_record.sql
+```
+
 ## Current Status
 
-Story 1 creates the project skeleton and Docker Compose foundation. Later stories add the PostgreSQL schema, Debezium connector registration, BigQuery Bronze table, Dataform transformations, and Airflow DAGs.
+Stories 1 and 2 create the Docker Compose foundation and PostgreSQL source database. Later stories add the Debezium connector registration, BigQuery Bronze table, Dataform transformations, and Airflow DAGs.
