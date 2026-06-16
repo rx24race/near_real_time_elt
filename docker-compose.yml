@@ -119,7 +119,24 @@ services:
       _AIRFLOW_WWW_USER_USERNAME: "${AIRFLOW_USERNAME:-admin}"
       _AIRFLOW_WWW_USER_PASSWORD: "${AIRFLOW_PASSWORD:-admin}"
     user: "${AIRFLOW_UID:-50000}:0"
-    command: "standalone"
+    command:
+      - "bash"
+      - "-c"
+      - |
+        set -e
+        airflow db migrate
+        airflow users create \
+          --username "$${_AIRFLOW_WWW_USER_USERNAME}" \
+          --password "$${_AIRFLOW_WWW_USER_PASSWORD}" \
+          --firstname Admin \
+          --lastname User \
+          --role Admin \
+          --email admin@example.com \
+        || airflow users reset-password \
+          --username "$${_AIRFLOW_WWW_USER_USERNAME}" \
+          --password "$${_AIRFLOW_WWW_USER_PASSWORD}"
+        airflow scheduler &
+        exec airflow webserver
     volumes:
       - ./airflow/dags:/opt/airflow/dags
       - ./airflow/logs:/opt/airflow/logs
