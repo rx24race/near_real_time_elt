@@ -29,6 +29,7 @@ debezium/     Debezium connector configuration
 consumer/     Python Kafka-to-BigQuery consumer
 airflow/      Airflow DAGs and local runtime folders
 dataform/     Dataform project files
+bigquery/     BigQuery DDL for external warehouse objects
 scripts/      Local setup and demo helper scripts
 docs/         Interview notes, diagrams, and troubleshooting
 ```
@@ -56,6 +57,24 @@ docs/         Interview notes, diagrams, and troubleshooting
 Airflow is available at `http://localhost:8080` with the default credentials in `.env.example`.
 
 Kafka UI is available at `http://localhost:8081`.
+
+## BigQuery Bronze
+
+Create the raw append-only CDC landing table before enabling the BigQuery consumer:
+
+```powershell
+.\scripts\create_bigquery_bronze.ps1 -ProjectId your-real-gcp-project-id
+```
+
+Bash users can run:
+
+```bash
+./scripts/create_bigquery_bronze.sh --project-id your-real-gcp-project-id
+```
+
+This creates `bronze.cdc_events` using the DDL in `bigquery/bronze_cdc_events.sql`.
+
+See `docs/bigquery_bronze.md` for GCP authentication, service account, and verification steps.
 
 ## PostgreSQL Source Database
 
@@ -114,4 +133,4 @@ More details are in `docs/debezium.md`.
 
 ## Current Status
 
-Stories 1 through 3 create the Docker Compose foundation, PostgreSQL source database, and Debezium CDC setup. Later stories add the BigQuery Bronze table, Dataform transformations, and Airflow DAGs.
+Stories 1 through 4 create the Docker Compose foundation, PostgreSQL source database, Debezium CDC setup, and BigQuery Bronze table definition. Later stories add the streaming BigQuery consumer, Dataform transformations, and Airflow DAGs.

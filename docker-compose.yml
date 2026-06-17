@@ -100,6 +100,7 @@ services:
       KAFKA_BOOTSTRAP_SERVERS: "kafka:9092"
       GCP_PROJECT_ID: "${GCP_PROJECT_ID:-your-gcp-project-id}"
       BIGQUERY_BRONZE_DATASET: "${BIGQUERY_BRONZE_DATASET:-bronze}"
+      BIGQUERY_LOCATION: "${BIGQUERY_LOCATION:-US}"
       GOOGLE_APPLICATION_CREDENTIALS: "${GOOGLE_APPLICATION_CREDENTIALS:-/opt/app/credentials/service-account.json}"
     volumes:
       - ./consumer:/opt/app
