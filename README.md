@@ -76,6 +76,25 @@ This creates `bronze.cdc_events` using the DDL in `bigquery/bronze_cdc_events.sq
 
 See `docs/bigquery_bronze.md` for GCP authentication, service account, and verification steps.
 
+## Python BigQuery Consumer
+
+The `python-bq-consumer` service continuously reads Debezium Kafka topics and appends raw CDC events to `bronze.cdc_events`.
+
+Rebuild it after dependency changes:
+
+```bash
+docker compose build python-bq-consumer
+docker compose up -d python-bq-consumer
+```
+
+Watch ingestion logs:
+
+```bash
+docker compose logs -f python-bq-consumer
+```
+
+See `docs/python_consumer.md` for configuration, delivery semantics, and troubleshooting.
+
 ## PostgreSQL Source Database
 
 The source database initializes with e-commerce OLTP tables and seed data:
@@ -133,4 +152,4 @@ More details are in `docs/debezium.md`.
 
 ## Current Status
 
-Stories 1 through 4 create the Docker Compose foundation, PostgreSQL source database, Debezium CDC setup, and BigQuery Bronze table definition. Later stories add the streaming BigQuery consumer, Dataform transformations, and Airflow DAGs.
+Stories 1 through 5 create the Docker Compose foundation, PostgreSQL source database, Debezium CDC setup, BigQuery Bronze table definition, and streaming Python BigQuery consumer. Later stories add Dataform transformations and Airflow DAGs.

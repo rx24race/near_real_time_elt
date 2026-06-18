@@ -32,7 +32,7 @@ The table stores one row per Debezium CDC message. It intentionally keeps raw JS
 5. Download the service account key JSON and place it at:
 
    ```text
-   consumer/credentials/service-account.json
+   bigquery/service_account.json
    ```
 
    Keep this file local. It must not be committed.
@@ -45,7 +45,7 @@ Copy `.env.example` to `.env` and set:
 GCP_PROJECT_ID=your-real-gcp-project-id
 BIGQUERY_BRONZE_DATASET=bronze
 BIGQUERY_LOCATION=US
-GOOGLE_APPLICATION_CREDENTIALS=/opt/app/credentials/service-account.json
+GOOGLE_APPLICATION_CREDENTIALS=/opt/app/credentials/service_account.json
 ```
 
 Use the same `BIGQUERY_LOCATION` for all BigQuery datasets in this project.

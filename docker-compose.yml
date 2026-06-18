@@ -98,12 +98,21 @@ services:
     container_name: cdc_python_bq_consumer
     environment:
       KAFKA_BOOTSTRAP_SERVERS: "kafka:9092"
+      KAFKA_CONSUMER_GROUP: "${KAFKA_CONSUMER_GROUP:-cdc-bq-bronze-loader}"
+      KAFKA_TOPICS: "${KAFKA_TOPICS:-postgres.customers,postgres.products,postgres.orders,postgres.order_items,postgres.payments}"
+      KAFKA_AUTO_OFFSET_RESET: "${KAFKA_AUTO_OFFSET_RESET:-earliest}"
+      KAFKA_MAX_POLL_RECORDS: "${KAFKA_MAX_POLL_RECORDS:-100}"
+      KAFKA_POLL_TIMEOUT_MS: "${KAFKA_POLL_TIMEOUT_MS:-5000}"
       GCP_PROJECT_ID: "${GCP_PROJECT_ID:-your-gcp-project-id}"
       BIGQUERY_BRONZE_DATASET: "${BIGQUERY_BRONZE_DATASET:-bronze}"
+      BIGQUERY_BRONZE_TABLE: "${BIGQUERY_BRONZE_TABLE:-cdc_events}"
       BIGQUERY_LOCATION: "${BIGQUERY_LOCATION:-US}"
-      GOOGLE_APPLICATION_CREDENTIALS: "${GOOGLE_APPLICATION_CREDENTIALS:-/opt/app/credentials/service-account.json}"
+      BIGQUERY_MAX_RETRIES: "${BIGQUERY_MAX_RETRIES:-3}"
+      BIGQUERY_RETRY_BACKOFF_SECONDS: "${BIGQUERY_RETRY_BACKOFF_SECONDS:-5}"
+      GOOGLE_APPLICATION_CREDENTIALS: "${GOOGLE_APPLICATION_CREDENTIALS:-/opt/app/credentials/service_account.json}"
     volumes:
       - ./consumer:/opt/app
+      - ./bigquery:/opt/app/credentials:ro
     depends_on:
       kafka:
         condition: service_healthy
