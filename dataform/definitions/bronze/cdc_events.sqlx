@@ -1,0 +1,7 @@
+config {
+  type: "declaration",
+  database: dataform.projectConfig.defaultProject,
+  schema: dataform.projectConfig.vars.bronzeDataset,
+  name: "cdc_events",
+  description: "Raw append-only Debezium CDC events loaded by the Python Kafka consumer."
+}

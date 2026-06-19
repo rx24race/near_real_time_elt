@@ -95,6 +95,18 @@ docker compose logs -f python-bq-consumer
 
 See `docs/python_consumer.md` for configuration, delivery semantics, and troubleshooting.
 
+## Dataform Transformations
+
+The Dataform project lives under `dataform/` and is configured for the Bronze/Silver/Gold BigQuery datasets.
+
+Compile locally:
+
+```bash
+npm run dataform:compile
+```
+
+See `docs/dataform.md` for Cloud Dataform setup and deployment notes.
+
 ## PostgreSQL Source Database
 
 The source database initializes with e-commerce OLTP tables and seed data:
@@ -152,4 +164,4 @@ More details are in `docs/debezium.md`.
 
 ## Current Status
 
-Stories 1 through 5 create the Docker Compose foundation, PostgreSQL source database, Debezium CDC setup, BigQuery Bronze table definition, and streaming Python BigQuery consumer. Later stories add Dataform transformations and Airflow DAGs.
+Stories 1 through 6 create the Docker Compose foundation, PostgreSQL source database, Debezium CDC setup, BigQuery Bronze table definition, streaming Python BigQuery consumer, and Dataform project scaffold. Later stories add Silver/Gold transformations and Airflow DAGs.

@@ -153,6 +153,7 @@ activemq-data/
 .venv
 consumer/credentials/
 bigquery/*.json
+node_modules/
 env/
 venv/
 ENV/

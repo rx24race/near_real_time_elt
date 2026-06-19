@@ -1,0 +1,17 @@
+config {
+  type: "assertion",
+  tags: ["bronze", "story_6"]
+}
+
+SELECT
+  *
+FROM
+  ${ref("cdc_events")}
+WHERE
+  source_table IS NULL
+  OR op IS NULL
+  OR kafka_topic IS NULL
+  OR kafka_partition IS NULL
+  OR kafka_offset IS NULL
+  OR raw_event_json IS NULL
+  OR ingested_at IS NULL

@@ -1,0 +1,10 @@
+defaultProject: near-real-time-elt
+defaultLocation: US
+defaultDataset: dataform
+defaultAssertionDataset: dataform_assertions
+dataformCoreVersion: 3.0.0
+
+vars:
+  bronzeDataset: bronze
+  silverDataset: silver
+  goldDataset: gold
