@@ -1,0 +1,51 @@
+config {
+  type: "table",
+  schema: dataform.projectConfig.vars.silverDataset,
+  name: "products",
+  tags: ["silver", "current_state"]
+}
+
+WITH source_events AS (
+  SELECT
+    SAFE_CAST(JSON_VALUE(COALESCE(after_json, before_json), "$.product_id") AS INT64) AS product_id,
+    op,
+    event_ts,
+    kafka_partition,
+    kafka_offset,
+    ingested_at,
+    after_json
+  FROM
+    ${ref("cdc_events")}
+  WHERE
+    source_table = "products"
+),
+
+latest_events AS (
+  SELECT
+    *
+  FROM
+    source_events
+  WHERE
+    product_id IS NOT NULL
+  QUALIFY
+    ROW_NUMBER() OVER (
+      PARTITION BY product_id
+      ORDER BY event_ts DESC NULLS LAST, ingested_at DESC, kafka_partition DESC, kafka_offset DESC
+    ) = 1
+)
+
+SELECT
+  product_id,
+  JSON_VALUE(after_json, "$.product_name") AS product_name,
+  JSON_VALUE(after_json, "$.category") AS category,
+  SAFE_CAST(JSON_VALUE(after_json, "$.unit_price") AS NUMERIC) AS unit_price,
+  TIMESTAMP(JSON_VALUE(after_json, "$.created_at")) AS created_at,
+  TIMESTAMP(JSON_VALUE(after_json, "$.updated_at")) AS updated_at,
+  event_ts AS cdc_event_ts,
+  ingested_at AS bronze_ingested_at,
+  kafka_partition,
+  kafka_offset
+FROM
+  latest_events
+WHERE
+  op != "d"

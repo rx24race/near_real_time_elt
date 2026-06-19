@@ -1,0 +1,53 @@
+config {
+  type: "table",
+  schema: dataform.projectConfig.vars.silverDataset,
+  name: "customers",
+  tags: ["silver", "current_state"]
+}
+
+WITH source_events AS (
+  SELECT
+    SAFE_CAST(JSON_VALUE(COALESCE(after_json, before_json), "$.customer_id") AS INT64) AS customer_id,
+    op,
+    event_ts,
+    kafka_partition,
+    kafka_offset,
+    ingested_at,
+    after_json
+  FROM
+    ${ref("cdc_events")}
+  WHERE
+    source_table = "customers"
+),
+
+latest_events AS (
+  SELECT
+    *
+  FROM
+    source_events
+  WHERE
+    customer_id IS NOT NULL
+  QUALIFY
+    ROW_NUMBER() OVER (
+      PARTITION BY customer_id
+      ORDER BY event_ts DESC NULLS LAST, ingested_at DESC, kafka_partition DESC, kafka_offset DESC
+    ) = 1
+)
+
+SELECT
+  customer_id,
+  JSON_VALUE(after_json, "$.first_name") AS first_name,
+  JSON_VALUE(after_json, "$.last_name") AS last_name,
+  JSON_VALUE(after_json, "$.email") AS email,
+  JSON_VALUE(after_json, "$.city") AS city,
+  JSON_VALUE(after_json, "$.membership_tier") AS membership_tier,
+  TIMESTAMP(JSON_VALUE(after_json, "$.created_at")) AS created_at,
+  TIMESTAMP(JSON_VALUE(after_json, "$.updated_at")) AS updated_at,
+  event_ts AS cdc_event_ts,
+  ingested_at AS bronze_ingested_at,
+  kafka_partition,
+  kafka_offset
+FROM
+  latest_events
+WHERE
+  op != "d"

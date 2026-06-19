@@ -105,6 +105,12 @@ Compile locally:
 npm run dataform:compile
 ```
 
+Run Silver transformations:
+
+```bash
+npm run dataform:run:silver
+```
+
 See `docs/dataform.md` for Cloud Dataform setup and deployment notes.
 
 ## PostgreSQL Source Database
@@ -164,4 +170,4 @@ More details are in `docs/debezium.md`.
 
 ## Current Status
 
-Stories 1 through 6 create the Docker Compose foundation, PostgreSQL source database, Debezium CDC setup, BigQuery Bronze table definition, streaming Python BigQuery consumer, and Dataform project scaffold. Later stories add Silver/Gold transformations and Airflow DAGs.
+Stories 1 through 7 create the Docker Compose foundation, PostgreSQL source database, Debezium CDC setup, BigQuery Bronze table definition, streaming Python BigQuery consumer, Dataform project scaffold, and Silver current-state tables. Later stories add Gold dimensional models and Airflow DAGs.

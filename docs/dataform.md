@@ -15,9 +15,15 @@ dataform/
     bronze/
       cdc_events.sqlx
     silver/
+      customers.sqlx
+      products.sqlx
+      orders.sqlx
+      order_items.sqlx
+      payments.sqlx
     gold/
     assertions/
       bronze_cdc_events_required_fields.sqlx
+      silver_*_unique.sqlx
 ```
 
 ## Dataset Configuration
@@ -37,7 +43,7 @@ The Bronze table is declared in Dataform as an external input:
 bronze.cdc_events
 ```
 
-Stories 7 through 9 will add the actual Silver and Gold transformations.
+Story 7 adds Silver current-state tables. Stories 8 and 9 will add Gold dimensions and facts.
 
 ## Local Compile
 
@@ -50,6 +56,28 @@ npm run dataform:compile
 The root `package.json` uses `npx` to run the Dataform CLI against the `dataform/` folder. This keeps `dataform/` as pure Dataform source, which avoids local `node_modules` files being interpreted as project files.
 
 Compilation validates the Dataform project structure and SQLX syntax. It does not run transformations in BigQuery.
+
+## Run Silver
+
+Create a local Dataform credentials wrapper at `dataform/.df-credentials.json`. This file is ignored by Git. It should contain your billing project, BigQuery location, and the service account JSON as a string.
+
+Then run:
+
+```bash
+npm run dataform:run:silver
+```
+
+This creates or replaces:
+
+```text
+silver.customers
+silver.products
+silver.orders
+silver.order_items
+silver.payments
+```
+
+Each Silver table reads `bronze.cdc_events`, parses the Debezium JSON payload, deduplicates by source primary key, filters out deletes, and keeps the latest current-state row.
 
 ## Cloud Dataform Setup
 
@@ -77,11 +105,13 @@ Recommended roles for this demo project:
 
 ## Current Actions
 
-Story 6 includes:
+Stories 6 and 7 include:
 
 - A declaration for `bronze.cdc_events`
 - An assertion that checks required Bronze fields are not null
-- Empty folders for Silver and Gold models
+- Silver current-state tables for all five source tables
+- Duplicate-key assertions for each Silver table
+- An empty folder for future Gold models
 - Shared dataset constants in `includes/datasets.js`
 
-The assertion is intentionally small. It gives the project a compile-friendly quality check without implementing the Story 7 Silver models early.
+The Silver models intentionally keep business logic light. They normalize types and current state only; dimensional modeling belongs in Gold.

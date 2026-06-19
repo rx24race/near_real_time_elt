@@ -1,0 +1,13 @@
+config {
+  type: "assertion",
+  tags: ["silver", "deduplication"]
+}
+
+SELECT
+  order_item_id
+FROM
+  ${ref("order_items")}
+GROUP BY
+  order_item_id
+HAVING
+  COUNT(*) > 1

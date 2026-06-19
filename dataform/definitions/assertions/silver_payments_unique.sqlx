@@ -1,0 +1,13 @@
+config {
+  type: "assertion",
+  tags: ["silver", "deduplication"]
+}
+
+SELECT
+  payment_id
+FROM
+  ${ref("payments")}
+GROUP BY
+  payment_id
+HAVING
+  COUNT(*) > 1

@@ -1,0 +1,52 @@
+config {
+  type: "table",
+  schema: dataform.projectConfig.vars.silverDataset,
+  name: "order_items",
+  tags: ["silver", "current_state"]
+}
+
+WITH source_events AS (
+  SELECT
+    SAFE_CAST(JSON_VALUE(COALESCE(after_json, before_json), "$.order_item_id") AS INT64) AS order_item_id,
+    op,
+    event_ts,
+    kafka_partition,
+    kafka_offset,
+    ingested_at,
+    after_json
+  FROM
+    ${ref("cdc_events")}
+  WHERE
+    source_table = "order_items"
+),
+
+latest_events AS (
+  SELECT
+    *
+  FROM
+    source_events
+  WHERE
+    order_item_id IS NOT NULL
+  QUALIFY
+    ROW_NUMBER() OVER (
+      PARTITION BY order_item_id
+      ORDER BY event_ts DESC NULLS LAST, ingested_at DESC, kafka_partition DESC, kafka_offset DESC
+    ) = 1
+)
+
+SELECT
+  order_item_id,
+  SAFE_CAST(JSON_VALUE(after_json, "$.order_id") AS INT64) AS order_id,
+  SAFE_CAST(JSON_VALUE(after_json, "$.product_id") AS INT64) AS product_id,
+  SAFE_CAST(JSON_VALUE(after_json, "$.quantity") AS INT64) AS quantity,
+  SAFE_CAST(JSON_VALUE(after_json, "$.unit_price") AS NUMERIC) AS unit_price,
+  TIMESTAMP(JSON_VALUE(after_json, "$.created_at")) AS created_at,
+  TIMESTAMP(JSON_VALUE(after_json, "$.updated_at")) AS updated_at,
+  event_ts AS cdc_event_ts,
+  ingested_at AS bronze_ingested_at,
+  kafka_partition,
+  kafka_offset
+FROM
+  latest_events
+WHERE
+  op != "d"
