@@ -30,7 +30,9 @@ dataform/
     assertions/
       bronze_cdc_events_required_fields.sqlx
       silver_*_unique.sqlx
+      silver_*_required_fields.sqlx
       gold_dim_customer_one_current.sqlx
+      gold_dimensions_surrogate_keys_not_null.sqlx
       gold_fact_*_valid.sqlx
 ```
 
@@ -148,15 +150,17 @@ Recommended roles for this demo project:
 
 ## Current Actions
 
-Stories 6 through 9 include:
+Stories 6 through 11 include:
 
 - A declaration for `bronze.cdc_events`
 - An assertion that checks required Bronze fields are not null
 - Silver current-state tables for all five source tables
 - Duplicate-key assertions for each Silver table
+- Required-field assertions for each Silver table
 - Gold dimensions for date, customer, and product
 - SCD Type 2 history for `gold.dim_customer`
 - An assertion that checks exactly one current customer dimension row per customer
+- An assertion that checks Gold dimension surrogate keys are not null
 - Gold facts for orders, order items, and payments
 - Fact assertions for unique grain, non-null surrogate keys, and non-negative measures
 - Shared dataset constants in `includes/datasets.js`

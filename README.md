@@ -194,4 +194,4 @@ More details are in `docs/debezium.md`.
 
 ## Current Status
 
-Stories 1 through 10 create the Docker Compose foundation, PostgreSQL source database, Debezium CDC setup, BigQuery Bronze table definition, streaming Python BigQuery consumer, Dataform project scaffold, Silver current-state tables, Gold dimensions with SCD Type 2 customer history, Gold fact tables, and an Airflow DAG for scheduled Dataform orchestration with data quality checks.
+Stories 1 through 11 create the Docker Compose foundation, PostgreSQL source database, Debezium CDC setup, BigQuery Bronze table definition, streaming Python BigQuery consumer, Dataform project scaffold, Silver current-state tables, Gold dimensions with SCD Type 2 customer history, Gold fact tables, an Airflow DAG for scheduled Dataform orchestration, and Data Quality checks that fail the DAG when Silver or Gold outputs are invalid.

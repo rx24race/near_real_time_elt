@@ -1,0 +1,16 @@
+config {
+  type: "assertion",
+  tags: ["silver", "data_quality"]
+}
+
+SELECT
+  product_id
+FROM
+  ${ref("products")}
+WHERE
+  product_id IS NULL
+  OR product_name IS NULL
+  OR category IS NULL
+  OR unit_price IS NULL
+  OR created_at IS NULL
+  OR updated_at IS NULL

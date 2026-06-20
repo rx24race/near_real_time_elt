@@ -1,0 +1,16 @@
+config {
+  type: "assertion",
+  tags: ["silver", "data_quality"]
+}
+
+SELECT
+  customer_id
+FROM
+  ${ref("customers")}
+WHERE
+  customer_id IS NULL
+  OR first_name IS NULL
+  OR last_name IS NULL
+  OR email IS NULL
+  OR created_at IS NULL
+  OR updated_at IS NULL

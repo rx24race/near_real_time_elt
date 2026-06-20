@@ -1,0 +1,17 @@
+config {
+  type: "assertion",
+  tags: ["silver", "data_quality"]
+}
+
+SELECT
+  payment_id
+FROM
+  ${ref("payments")}
+WHERE
+  payment_id IS NULL
+  OR order_id IS NULL
+  OR payment_method IS NULL
+  OR payment_status IS NULL
+  OR amount IS NULL
+  OR created_at IS NULL
+  OR updated_at IS NULL

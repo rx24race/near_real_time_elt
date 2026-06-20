@@ -15,7 +15,7 @@ bronze_ready -> run_dataform_silver -> run_dataform_gold -> run_dq_checks -> not
 - `bronze_ready` checks that `bronze.cdc_events` has data.
 - `run_dataform_silver` runs Dataform models tagged `silver`.
 - `run_dataform_gold` runs Dataform models tagged `gold` with dependencies.
-- `run_dq_checks` runs lightweight BigQuery checks for empty Silver data, duplicate current customer dimension rows, and negative fact amounts.
+- `run_dq_checks` records that Dataform assertions already enforced data quality during the Silver and Gold runs.
 - `notify` writes a success message to the Airflow task log.
 
 ## Local UI
@@ -62,7 +62,7 @@ docker compose exec airflow airflow dags list-import-errors
 
 ## Failure Visibility
 
-The DAG uses two retries with a one-minute delay. Failures are visible in:
+The DAG uses two retries with a one-minute delay. A failing Dataform assertion fails the `run_dataform_silver` or `run_dataform_gold` task because `dataform run` exits with a non-zero status. Failures are visible in:
 
 - the Airflow UI task status
 - the Airflow UI task logs

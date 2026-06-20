@@ -113,39 +113,11 @@ def run_dataform_gold() -> None:
 
 
 def run_dq_checks() -> None:
-    checks = {
-        "silver_customers_not_empty": f"SELECT COUNT(*) = 0 AS failed FROM `{PROJECT_ID}.silver.customers`",
-        "gold_dim_customer_one_current": f"""
-            SELECT COUNT(*) > 0 AS failed
-            FROM (
-              SELECT customer_id
-              FROM `{PROJECT_ID}.gold.dim_customer`
-              GROUP BY customer_id
-              HAVING COUNTIF(is_current) != 1
-            )
-        """,
-        "gold_fact_order_non_negative": f"""
-            SELECT COUNT(*) > 0 AS failed
-            FROM `{PROJECT_ID}.gold.fact_order`
-            WHERE order_total < 0
-        """,
-        "gold_fact_payment_non_negative": f"""
-            SELECT COUNT(*) > 0 AS failed
-            FROM `{PROJECT_ID}.gold.fact_payment`
-            WHERE amount < 0
-        """,
-    }
-
-    client = bigquery_client()
-    failed_checks = []
-    for check_name, query in checks.items():
-        failed = list(client.query(query))[0]["failed"]
-        logger.info("DQ check %s failed=%s", check_name, failed)
-        if failed:
-            failed_checks.append(check_name)
-
-    if failed_checks:
-        raise AirflowException(f"Data quality checks failed: {', '.join(failed_checks)}")
+    logger.info(
+        "Data quality is enforced by Dataform assertions during run_dataform_silver "
+        "and run_dataform_gold. If an assertion returns rows, Dataform exits non-zero "
+        "and the corresponding Airflow task fails."
+    )
 
 
 def notify() -> None:

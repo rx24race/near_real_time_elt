@@ -1,0 +1,32 @@
+config {
+  type: "assertion",
+  tags: ["gold", "data_quality"]
+}
+
+SELECT
+  "dim_customer" AS table_name,
+  CAST(customer_id AS STRING) AS source_key
+FROM
+  ${ref("dim_customer")}
+WHERE
+  customer_sk IS NULL
+
+UNION ALL
+
+SELECT
+  "dim_product" AS table_name,
+  CAST(product_id AS STRING) AS source_key
+FROM
+  ${ref("dim_product")}
+WHERE
+  product_sk IS NULL
+
+UNION ALL
+
+SELECT
+  "dim_date" AS table_name,
+  CAST(date_key AS STRING) AS source_key
+FROM
+  ${ref("dim_date")}
+WHERE
+  date_key IS NULL
