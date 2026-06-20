@@ -1,0 +1,34 @@
+config {
+  type: "table",
+  schema: dataform.projectConfig.vars.goldDataset,
+  name: "dim_date",
+  tags: ["gold", "dimension"]
+}
+
+WITH date_spine AS (
+  SELECT
+    date_day
+  FROM
+    UNNEST(GENERATE_DATE_ARRAY("2026-01-01", DATE_ADD(CURRENT_DATE(), INTERVAL 1 YEAR))) AS date_day
+)
+
+SELECT
+  CAST(FORMAT_DATE("%Y%m%d", date_day) AS INT64) AS date_key,
+  date_day,
+  EXTRACT(YEAR FROM date_day) AS year,
+  EXTRACT(QUARTER FROM date_day) AS quarter,
+  EXTRACT(MONTH FROM date_day) AS month,
+  FORMAT_DATE("%B", date_day) AS month_name,
+  EXTRACT(DAY FROM date_day) AS day_of_month,
+  EXTRACT(DAYOFWEEK FROM date_day) AS day_of_week,
+  FORMAT_DATE("%A", date_day) AS day_name,
+  EXTRACT(ISOWEEK FROM date_day) AS iso_week,
+  EXTRACT(ISOYEAR FROM date_day) AS iso_year,
+  date_day IN UNNEST([
+    DATE("2026-01-01"),
+    DATE("2026-07-04"),
+    DATE("2026-11-26"),
+    DATE("2026-12-25")
+  ]) AS is_us_holiday
+FROM
+  date_spine

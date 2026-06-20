@@ -1,0 +1,114 @@
+config {
+  type: "table",
+  schema: dataform.projectConfig.vars.goldDataset,
+  name: "dim_customer",
+  tags: ["gold", "dimension", "scd2"]
+}
+
+WITH customer_events AS (
+  SELECT
+    SAFE_CAST(JSON_VALUE(COALESCE(after_json, before_json), "$.customer_id") AS INT64) AS customer_id,
+    op,
+    COALESCE(event_ts, ingested_at) AS event_at,
+    ingested_at,
+    kafka_partition,
+    kafka_offset,
+    after_json,
+    TO_HEX(MD5(CONCAT(
+      COALESCE(JSON_VALUE(after_json, "$.email"), ""),
+      "|",
+      COALESCE(JSON_VALUE(after_json, "$.city"), ""),
+      "|",
+      COALESCE(JSON_VALUE(after_json, "$.membership_tier"), "")
+    ))) AS record_hash
+  FROM
+    ${ref("cdc_events")}
+  WHERE
+    source_table = "customers"
+),
+
+non_delete_events AS (
+  SELECT
+    *,
+    LAG(record_hash) OVER (
+      PARTITION BY customer_id
+      ORDER BY event_at, ingested_at, kafka_partition, kafka_offset
+    ) AS previous_record_hash
+  FROM
+    customer_events
+  WHERE
+    customer_id IS NOT NULL
+    AND op != "d"
+),
+
+version_starts AS (
+  SELECT
+    customer_id,
+    event_at AS boundary_at,
+    ingested_at,
+    kafka_partition,
+    kafka_offset,
+    TRUE AS creates_dimension_row,
+    after_json,
+    record_hash
+  FROM
+    non_delete_events
+  WHERE
+    previous_record_hash IS NULL
+    OR previous_record_hash != record_hash
+),
+
+delete_boundaries AS (
+  SELECT
+    customer_id,
+    event_at AS boundary_at,
+    ingested_at,
+    kafka_partition,
+    kafka_offset,
+    FALSE AS creates_dimension_row,
+    CAST(NULL AS JSON) AS after_json,
+    CAST(NULL AS STRING) AS record_hash
+  FROM
+    customer_events
+  WHERE
+    customer_id IS NOT NULL
+    AND op = "d"
+),
+
+version_boundaries AS (
+  SELECT * FROM version_starts
+  UNION ALL
+  SELECT * FROM delete_boundaries
+),
+
+scd_versions AS (
+  SELECT
+    *,
+    LEAD(boundary_at) OVER (
+      PARTITION BY customer_id
+      ORDER BY boundary_at, ingested_at, kafka_partition, kafka_offset
+    ) AS next_boundary_at
+  FROM
+    version_boundaries
+)
+
+SELECT
+  TO_HEX(MD5(CONCAT(
+    CAST(customer_id AS STRING),
+    "|",
+    FORMAT_TIMESTAMP("%Y-%m-%dT%H:%M:%E6SZ", boundary_at)
+  ))) AS customer_sk,
+  customer_id,
+  JSON_VALUE(after_json, "$.first_name") AS first_name,
+  JSON_VALUE(after_json, "$.last_name") AS last_name,
+  JSON_VALUE(after_json, "$.email") AS email,
+  JSON_VALUE(after_json, "$.city") AS city,
+  JSON_VALUE(after_json, "$.membership_tier") AS membership_tier,
+  boundary_at AS effective_start_at,
+  next_boundary_at AS effective_end_at,
+  next_boundary_at IS NULL AS is_current,
+  record_hash
+FROM
+  scd_versions
+WHERE
+  creates_dimension_row

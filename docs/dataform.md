@@ -21,9 +21,13 @@ dataform/
       order_items.sqlx
       payments.sqlx
     gold/
+      dim_customer.sqlx
+      dim_date.sqlx
+      dim_product.sqlx
     assertions/
       bronze_cdc_events_required_fields.sqlx
       silver_*_unique.sqlx
+      gold_dim_customer_one_current.sqlx
 ```
 
 ## Dataset Configuration
@@ -43,7 +47,7 @@ The Bronze table is declared in Dataform as an external input:
 bronze.cdc_events
 ```
 
-Story 7 adds Silver current-state tables. Stories 8 and 9 will add Gold dimensions and facts.
+Story 7 adds Silver current-state tables. Story 8 adds Gold dimensions. Story 9 will add Gold facts.
 
 ## Local Compile
 
@@ -79,6 +83,30 @@ silver.payments
 
 Each Silver table reads `bronze.cdc_events`, parses the Debezium JSON payload, deduplicates by source primary key, filters out deletes, and keeps the latest current-state row.
 
+## Run Gold Dimensions
+
+```bash
+npm run dataform:run:gold
+```
+
+This creates or replaces:
+
+```text
+gold.dim_customer
+gold.dim_date
+gold.dim_product
+```
+
+`gold.dim_customer` is an SCD Type 2 dimension built from Bronze customer CDC history. It tracks changes to:
+
+- `email`
+- `city`
+- `membership_tier`
+
+`gold.dim_product` is a current-state product dimension built from `silver.products`.
+
+`gold.dim_date` is a reusable calendar dimension.
+
 ## Cloud Dataform Setup
 
 1. Create a Dataform repository in the same GCP project used by BigQuery.
@@ -105,13 +133,15 @@ Recommended roles for this demo project:
 
 ## Current Actions
 
-Stories 6 and 7 include:
+Stories 6 through 8 include:
 
 - A declaration for `bronze.cdc_events`
 - An assertion that checks required Bronze fields are not null
 - Silver current-state tables for all five source tables
 - Duplicate-key assertions for each Silver table
-- An empty folder for future Gold models
+- Gold dimensions for date, customer, and product
+- SCD Type 2 history for `gold.dim_customer`
+- An assertion that checks exactly one current customer dimension row per customer
 - Shared dataset constants in `includes/datasets.js`
 
 The Silver models intentionally keep business logic light. They normalize types and current state only; dimensional modeling belongs in Gold.

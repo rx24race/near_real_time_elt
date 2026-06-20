@@ -3,6 +3,7 @@
   "private": true,
   "scripts": {
     "dataform:compile": "npx --yes @dataform/cli@^3.0.0 compile dataform",
-    "dataform:run:silver": "npx --yes @dataform/cli@^3.0.0 run dataform --tags silver"
+    "dataform:run:silver": "npx --yes @dataform/cli@^3.0.0 run dataform --tags silver",
+    "dataform:run:gold": "npx --yes @dataform/cli@^3.0.0 run dataform --tags gold --include-deps"
   }
 }

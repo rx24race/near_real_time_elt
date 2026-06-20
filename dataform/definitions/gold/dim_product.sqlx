@@ -1,0 +1,19 @@
+config {
+  type: "table",
+  schema: dataform.projectConfig.vars.goldDataset,
+  name: "dim_product",
+  tags: ["gold", "dimension"]
+}
+
+SELECT
+  TO_HEX(MD5(CAST(product_id AS STRING))) AS product_sk,
+  product_id,
+  product_name,
+  category,
+  unit_price,
+  created_at,
+  updated_at,
+  cdc_event_ts,
+  bronze_ingested_at
+FROM
+  ${ref("products")}
