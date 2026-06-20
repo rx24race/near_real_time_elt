@@ -118,7 +118,8 @@ services:
         condition: service_healthy
 
   airflow:
-    image: apache/airflow:2.9.3
+    build:
+      context: ./airflow
     container_name: cdc_airflow
     ports:
       - "${AIRFLOW_PORT:-8080}:8080"
@@ -126,6 +127,12 @@ services:
       AIRFLOW__CORE__EXECUTOR: "SequentialExecutor"
       AIRFLOW__CORE__LOAD_EXAMPLES: "false"
       AIRFLOW__DATABASE__SQL_ALCHEMY_CONN: "sqlite:////opt/airflow/airflow.db"
+      GCP_PROJECT_ID: "${GCP_PROJECT_ID:-your-gcp-project-id}"
+      BIGQUERY_BRONZE_DATASET: "${BIGQUERY_BRONZE_DATASET:-bronze}"
+      BIGQUERY_BRONZE_TABLE: "${BIGQUERY_BRONZE_TABLE:-cdc_events}"
+      BIGQUERY_LOCATION: "${BIGQUERY_LOCATION:-US}"
+      GOOGLE_APPLICATION_CREDENTIALS: "/opt/project/bigquery/service_account.json"
+      DATAFORM_PROJECT_DIR: "/opt/project/dataform"
       _AIRFLOW_WWW_USER_USERNAME: "${AIRFLOW_USERNAME:-admin}"
       _AIRFLOW_WWW_USER_PASSWORD: "${AIRFLOW_PASSWORD:-admin}"
     user: "${AIRFLOW_UID:-50000}:0"
@@ -151,6 +158,8 @@ services:
       - ./airflow/dags:/opt/airflow/dags
       - ./airflow/logs:/opt/airflow/logs
       - ./airflow/plugins:/opt/airflow/plugins
+      - ./dataform:/opt/project/dataform
+      - ./bigquery:/opt/project/bigquery:ro
 
 volumes:
   postgres_data:

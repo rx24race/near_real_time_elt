@@ -119,6 +119,24 @@ npm run dataform:run:gold
 
 See `docs/dataform.md` for Cloud Dataform setup and deployment notes.
 
+## Airflow Orchestration
+
+Airflow runs the transformation workflow every five minutes:
+
+```text
+bronze_ready -> run_dataform_silver -> run_dataform_gold -> run_dq_checks -> notify
+```
+
+Airflow does not orchestrate Debezium, Kafka, or the Python streaming consumer.
+
+Trigger a manual transformation run:
+
+```bash
+docker compose exec airflow airflow dags trigger dataform_bronze_to_gold
+```
+
+See `docs/airflow.md` for UI access, local testing, retries, and failure visibility.
+
 ## PostgreSQL Source Database
 
 The source database initializes with e-commerce OLTP tables and seed data:
@@ -176,4 +194,4 @@ More details are in `docs/debezium.md`.
 
 ## Current Status
 
-Stories 1 through 9 create the Docker Compose foundation, PostgreSQL source database, Debezium CDC setup, BigQuery Bronze table definition, streaming Python BigQuery consumer, Dataform project scaffold, Silver current-state tables, Gold dimensions with SCD Type 2 customer history, and Gold fact tables. Later stories add Airflow DAGs and data quality orchestration.
+Stories 1 through 10 create the Docker Compose foundation, PostgreSQL source database, Debezium CDC setup, BigQuery Bronze table definition, streaming Python BigQuery consumer, Dataform project scaffold, Silver current-state tables, Gold dimensions with SCD Type 2 customer history, Gold fact tables, and an Airflow DAG for scheduled Dataform orchestration with data quality checks.
