@@ -1,0 +1,40 @@
+config {
+  type: "table",
+  schema: dataform.projectConfig.vars.goldDataset,
+  name: "fact_order_item",
+  tags: ["gold", "fact"]
+}
+
+SELECT
+  TO_HEX(MD5(CAST(oi.order_item_id AS STRING))) AS order_item_sk,
+  TO_HEX(MD5(CAST(oi.order_id AS STRING))) AS order_sk,
+  COALESCE(dp.product_sk, "unknown") AS product_sk,
+  COALESCE(dc.customer_sk, "unknown") AS customer_sk,
+  CAST(FORMAT_DATE("%Y%m%d", DATE(o.created_at)) AS INT64) AS order_date_key,
+  oi.order_item_id,
+  oi.order_id,
+  o.customer_id,
+  oi.product_id,
+  oi.quantity,
+  oi.unit_price,
+  SAFE_CAST(oi.quantity AS NUMERIC) * oi.unit_price AS line_total,
+  oi.created_at AS order_item_created_at,
+  oi.updated_at AS order_item_updated_at,
+  oi.cdc_event_ts,
+  oi.bronze_ingested_at
+FROM
+  ${ref("order_items")} AS oi
+LEFT JOIN
+  ${ref("orders")} AS o
+ON
+  oi.order_id = o.order_id
+LEFT JOIN
+  ${ref("dim_product")} AS dp
+ON
+  oi.product_id = dp.product_id
+LEFT JOIN
+  ${ref("dim_customer")} AS dc
+ON
+  o.customer_id = dc.customer_id
+  AND o.created_at >= dc.effective_start_at
+  AND (dc.effective_end_at IS NULL OR o.created_at < dc.effective_end_at)

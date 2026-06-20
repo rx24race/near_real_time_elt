@@ -17,3 +17,16 @@ SELECT
   bronze_ingested_at
 FROM
   ${ref("products")}
+
+UNION ALL
+
+SELECT
+  "unknown" AS product_sk,
+  -1 AS product_id,
+  "Unknown Product" AS product_name,
+  "unknown" AS category,
+  CAST(0 AS NUMERIC) AS unit_price,
+  TIMESTAMP("1900-01-01 00:00:00+00") AS created_at,
+  TIMESTAMP("1900-01-01 00:00:00+00") AS updated_at,
+  TIMESTAMP("1900-01-01 00:00:00+00") AS cdc_event_ts,
+  TIMESTAMP("1900-01-01 00:00:00+00") AS bronze_ingested_at

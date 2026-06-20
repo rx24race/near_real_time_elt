@@ -9,7 +9,14 @@ WITH customer_events AS (
   SELECT
     SAFE_CAST(JSON_VALUE(COALESCE(after_json, before_json), "$.customer_id") AS INT64) AS customer_id,
     op,
-    COALESCE(event_ts, ingested_at) AS event_at,
+    CASE
+      WHEN op = "r" THEN COALESCE(
+        TIMESTAMP(JSON_VALUE(after_json, "$.updated_at")),
+        event_ts,
+        ingested_at
+      )
+      ELSE COALESCE(event_ts, ingested_at)
+    END AS event_at,
     ingested_at,
     kafka_partition,
     kafka_offset,
@@ -112,3 +119,18 @@ FROM
   scd_versions
 WHERE
   creates_dimension_row
+
+UNION ALL
+
+SELECT
+  "unknown" AS customer_sk,
+  -1 AS customer_id,
+  "Unknown" AS first_name,
+  "Customer" AS last_name,
+  "unknown@example.com" AS email,
+  "Unknown" AS city,
+  "unknown" AS membership_tier,
+  TIMESTAMP("1900-01-01 00:00:00+00") AS effective_start_at,
+  NULL AS effective_end_at,
+  TRUE AS is_current,
+  "unknown" AS record_hash

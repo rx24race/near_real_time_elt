@@ -111,7 +111,7 @@ Run Silver transformations:
 npm run dataform:run:silver
 ```
 
-Run Gold dimensions:
+Run Gold dimensions and facts:
 
 ```bash
 npm run dataform:run:gold
@@ -176,4 +176,4 @@ More details are in `docs/debezium.md`.
 
 ## Current Status
 
-Stories 1 through 8 create the Docker Compose foundation, PostgreSQL source database, Debezium CDC setup, BigQuery Bronze table definition, streaming Python BigQuery consumer, Dataform project scaffold, Silver current-state tables, and Gold dimensions with SCD Type 2 customer history. Later stories add Gold facts and Airflow DAGs.
+Stories 1 through 9 create the Docker Compose foundation, PostgreSQL source database, Debezium CDC setup, BigQuery Bronze table definition, streaming Python BigQuery consumer, Dataform project scaffold, Silver current-state tables, Gold dimensions with SCD Type 2 customer history, and Gold fact tables. Later stories add Airflow DAGs and data quality orchestration.

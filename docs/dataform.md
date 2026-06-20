@@ -24,10 +24,14 @@ dataform/
       dim_customer.sqlx
       dim_date.sqlx
       dim_product.sqlx
+      fact_order.sqlx
+      fact_order_item.sqlx
+      fact_payment.sqlx
     assertions/
       bronze_cdc_events_required_fields.sqlx
       silver_*_unique.sqlx
       gold_dim_customer_one_current.sqlx
+      gold_fact_*_valid.sqlx
 ```
 
 ## Dataset Configuration
@@ -47,7 +51,7 @@ The Bronze table is declared in Dataform as an external input:
 bronze.cdc_events
 ```
 
-Story 7 adds Silver current-state tables. Story 8 adds Gold dimensions. Story 9 will add Gold facts.
+Story 7 adds Silver current-state tables. Story 8 adds Gold dimensions. Story 9 adds Gold facts.
 
 ## Local Compile
 
@@ -95,6 +99,9 @@ This creates or replaces:
 gold.dim_customer
 gold.dim_date
 gold.dim_product
+gold.fact_order
+gold.fact_order_item
+gold.fact_payment
 ```
 
 `gold.dim_customer` is an SCD Type 2 dimension built from Bronze customer CDC history. It tracks changes to:
@@ -106,6 +113,14 @@ gold.dim_product
 `gold.dim_product` is a current-state product dimension built from `silver.products`.
 
 `gold.dim_date` is a reusable calendar dimension.
+
+Gold facts use stable surrogate keys from the Gold dimensions and source transaction keys from Silver:
+
+- `gold.fact_order` joins `gold.dim_customer` and `gold.dim_date`
+- `gold.fact_order_item` joins `gold.dim_customer`, `gold.dim_product`, and `gold.dim_date`
+- `gold.fact_payment` joins `gold.dim_customer` and `gold.dim_date`
+
+The fact models are full-refresh and idempotent. Rerunning the command recreates the same facts from Silver and Gold dimensions rather than appending duplicates.
 
 ## Cloud Dataform Setup
 
@@ -133,7 +148,7 @@ Recommended roles for this demo project:
 
 ## Current Actions
 
-Stories 6 through 8 include:
+Stories 6 through 9 include:
 
 - A declaration for `bronze.cdc_events`
 - An assertion that checks required Bronze fields are not null
@@ -142,6 +157,8 @@ Stories 6 through 8 include:
 - Gold dimensions for date, customer, and product
 - SCD Type 2 history for `gold.dim_customer`
 - An assertion that checks exactly one current customer dimension row per customer
+- Gold facts for orders, order items, and payments
+- Fact assertions for unique grain, non-null surrogate keys, and non-negative measures
 - Shared dataset constants in `includes/datasets.js`
 
 The Silver models intentionally keep business logic light. They normalize types and current state only; dimensional modeling belongs in Gold.

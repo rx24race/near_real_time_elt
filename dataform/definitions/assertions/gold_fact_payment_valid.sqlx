@@ -1,0 +1,26 @@
+config {
+  type: "assertion",
+  tags: ["gold", "fact"]
+}
+
+SELECT
+  payment_id
+FROM
+  ${ref("fact_payment")}
+GROUP BY
+  payment_id
+HAVING
+  COUNT(*) > 1
+
+UNION ALL
+
+SELECT
+  payment_id
+FROM
+  ${ref("fact_payment")}
+WHERE
+  payment_sk IS NULL
+  OR order_sk IS NULL
+  OR customer_sk IS NULL
+  OR payment_date_key IS NULL
+  OR amount < 0

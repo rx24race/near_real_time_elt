@@ -1,0 +1,27 @@
+config {
+  type: "table",
+  schema: dataform.projectConfig.vars.goldDataset,
+  name: "fact_order",
+  tags: ["gold", "fact"]
+}
+
+SELECT
+  TO_HEX(MD5(CAST(o.order_id AS STRING))) AS order_sk,
+  o.order_id,
+  COALESCE(dc.customer_sk, "unknown") AS customer_sk,
+  CAST(FORMAT_DATE("%Y%m%d", DATE(o.created_at)) AS INT64) AS order_date_key,
+  o.customer_id,
+  o.order_status,
+  o.order_total,
+  o.created_at AS order_created_at,
+  o.updated_at AS order_updated_at,
+  o.cdc_event_ts,
+  o.bronze_ingested_at
+FROM
+  ${ref("orders")} AS o
+LEFT JOIN
+  ${ref("dim_customer")} AS dc
+ON
+  o.customer_id = dc.customer_id
+  AND o.created_at >= dc.effective_start_at
+  AND (dc.effective_end_at IS NULL OR o.created_at < dc.effective_end_at)
