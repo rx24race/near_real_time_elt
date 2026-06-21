@@ -121,7 +121,7 @@ See `docs/dataform.md` for Cloud Dataform setup and deployment notes.
 
 ## Airflow Orchestration
 
-Airflow runs the transformation workflow every five minutes:
+Airflow runs the transformation workflow on demand:
 
 ```text
 bronze_ready -> run_dataform_silver -> run_dataform_gold -> run_dq_checks -> notify
@@ -136,6 +136,18 @@ docker compose exec airflow airflow dags trigger dataform_bronze_to_gold
 ```
 
 See `docs/airflow.md` for UI access, local testing, retries, and failure visibility.
+
+## Demo Scenarios
+
+Story 12 provides an end-to-end demo walkthrough for inserts, updates, SCD2 history, facts, payments, and deletes.
+
+Start with the optional reset helper:
+
+```bash
+docker exec cdc_postgres psql -U postgres -d ecommerce -v ON_ERROR_STOP=1 -f //opt/project/scripts/reset_demo_data.sql
+```
+
+Then follow `docs/demo_scenarios.md`.
 
 ## PostgreSQL Source Database
 
@@ -156,16 +168,19 @@ docker compose exec postgres psql -U postgres -d ecommerce -v ON_ERROR_STOP=1 -f
 docker compose exec postgres psql -U postgres -d ecommerce -v ON_ERROR_STOP=1 -f /docker-entrypoint-initdb.d/002_seed_source_data.sql
 ```
 
-Demo SQL scripts are mounted into the Postgres container at `/opt/project/scripts`:
+Demo SQL scripts are mounted into the Postgres container at `/opt/project/scripts`.
+
+For Git Bash on Windows, use `//opt/project/...` so the path is not rewritten into `C:/Program Files/Git/...`:
 
 ```bash
-docker compose exec postgres psql -U postgres -d ecommerce -v ON_ERROR_STOP=1 -f /opt/project/scripts/insert_new_customer.sql
-docker compose exec postgres psql -U postgres -d ecommerce -v ON_ERROR_STOP=1 -f /opt/project/scripts/update_customer_city.sql
-docker compose exec postgres psql -U postgres -d ecommerce -v ON_ERROR_STOP=1 -f /opt/project/scripts/update_customer_tier.sql
-docker compose exec postgres psql -U postgres -d ecommerce -v ON_ERROR_STOP=1 -f /opt/project/scripts/create_order.sql
-docker compose exec postgres psql -U postgres -d ecommerce -v ON_ERROR_STOP=1 -f /opt/project/scripts/create_order_items.sql
-docker compose exec postgres psql -U postgres -d ecommerce -v ON_ERROR_STOP=1 -f /opt/project/scripts/create_payment.sql
-docker compose exec postgres psql -U postgres -d ecommerce -v ON_ERROR_STOP=1 -f /opt/project/scripts/delete_record.sql
+docker exec cdc_postgres psql -U postgres -d ecommerce -v ON_ERROR_STOP=1 -f //opt/project/scripts/reset_demo_data.sql
+docker exec cdc_postgres psql -U postgres -d ecommerce -v ON_ERROR_STOP=1 -f //opt/project/scripts/insert_new_customer.sql
+docker exec cdc_postgres psql -U postgres -d ecommerce -v ON_ERROR_STOP=1 -f //opt/project/scripts/update_customer_city.sql
+docker exec cdc_postgres psql -U postgres -d ecommerce -v ON_ERROR_STOP=1 -f //opt/project/scripts/update_customer_tier.sql
+docker exec cdc_postgres psql -U postgres -d ecommerce -v ON_ERROR_STOP=1 -f //opt/project/scripts/create_order.sql
+docker exec cdc_postgres psql -U postgres -d ecommerce -v ON_ERROR_STOP=1 -f //opt/project/scripts/create_order_items.sql
+docker exec cdc_postgres psql -U postgres -d ecommerce -v ON_ERROR_STOP=1 -f //opt/project/scripts/create_payment.sql
+docker exec cdc_postgres psql -U postgres -d ecommerce -v ON_ERROR_STOP=1 -f //opt/project/scripts/delete_record.sql
 ```
 
 ## Debezium CDC
@@ -194,4 +209,4 @@ More details are in `docs/debezium.md`.
 
 ## Current Status
 
-Stories 1 through 11 create the Docker Compose foundation, PostgreSQL source database, Debezium CDC setup, BigQuery Bronze table definition, streaming Python BigQuery consumer, Dataform project scaffold, Silver current-state tables, Gold dimensions with SCD Type 2 customer history, Gold fact tables, an Airflow DAG for scheduled Dataform orchestration, and Data Quality checks that fail the DAG when Silver or Gold outputs are invalid.
+Stories 1 through 12 create the Docker Compose foundation, PostgreSQL source database, Debezium CDC setup, BigQuery Bronze table definition, streaming Python BigQuery consumer, Dataform project scaffold, Silver current-state tables, Gold dimensions with SCD Type 2 customer history, Gold fact tables, an Airflow DAG for scheduled Dataform orchestration, Data Quality checks that fail the DAG when Silver or Gold outputs are invalid, and demo scenarios that show the pipeline end to end.

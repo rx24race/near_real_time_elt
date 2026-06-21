@@ -133,7 +133,7 @@ with DAG(
     description="Orchestrates Dataform Bronze to Silver and Gold transformations only.",
     default_args=default_args,
     start_date=datetime(2026, 1, 1),
-    schedule_interval="*/5 * * * *",
+    schedule_interval=None,
     catchup=False,
     max_active_runs=1,
     tags=["cdc", "dataform", "bigquery"],

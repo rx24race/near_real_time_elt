@@ -65,5 +65,7 @@ docker compose exec kafka /opt/kafka/bin/kafka-console-consumer.sh --bootstrap-s
 Run a demo SQL script to generate new events:
 
 ```bash
-docker compose exec postgres psql -U postgres -d ecommerce -v ON_ERROR_STOP=1 -f /opt/project/scripts/update_customer_city.sql
+docker exec cdc_postgres psql -U postgres -d ecommerce -v ON_ERROR_STOP=1 -f //opt/project/scripts/update_customer_city.sql
 ```
+
+The `//opt/project/...` path form is Git Bash-safe on Windows. It prevents Git Bash from rewriting the container path into `C:/Program Files/Git/opt/...`.

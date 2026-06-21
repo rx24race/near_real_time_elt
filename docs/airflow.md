@@ -6,7 +6,7 @@ It does not start Debezium, Kafka, or the Python streaming consumer. Those servi
 
 ## DAG
 
-The DAG is `dataform_bronze_to_gold` and runs every five minutes.
+The DAG is `dataform_bronze_to_gold` and is configured for manual runs only.
 
 ```text
 bronze_ready -> run_dataform_silver -> run_dataform_gold -> run_dq_checks -> notify
@@ -42,7 +42,7 @@ AIRFLOW_PASSWORD=admin
 
 ## Manual Runs
 
-Trigger the full DAG from the CLI:
+Trigger the full DAG from the CLI when you want to refresh Silver and Gold:
 
 ```bash
 docker compose exec airflow airflow dags trigger dataform_bronze_to_gold
