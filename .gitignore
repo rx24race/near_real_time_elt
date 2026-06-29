@@ -154,6 +154,7 @@ activemq-data/
 consumer/credentials/
 bigquery/*.json
 dataform/.df-credentials.json
+airflow/logs/
 node_modules/
 env/
 venv/

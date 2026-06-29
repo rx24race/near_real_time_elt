@@ -16,7 +16,7 @@ bronze_ready -> run_dataform_silver -> run_dataform_gold -> run_dq_checks -> not
 - `run_dataform_silver` runs Dataform models tagged `silver`.
 - `run_dataform_gold` runs Dataform models tagged `gold` with dependencies.
 - `run_dq_checks` records that Dataform assertions already enforced data quality during the Silver and Gold runs.
-- `notify` writes a success message to the Airflow task log.
+- `notify` writes a success message to the Airflow task log and sends a success email when email settings are configured.
 
 ## Local UI
 
@@ -39,6 +39,28 @@ The default local login is controlled by `.env`:
 AIRFLOW_USERNAME=admin
 AIRFLOW_PASSWORD=admin
 ```
+
+## Email Notifications
+
+The DAG sends:
+
+- a success email from the terminal `notify` task
+- a failure email from the DAG-level failure callback after retries are exhausted
+
+Email is disabled by default. To enable it, set the recipient and SMTP settings in `.env`, then restart Airflow:
+
+```text
+AIRFLOW_ALERT_EMAIL_TO=you@example.com
+AIRFLOW_SMTP_HOST=smtp.gmail.com
+AIRFLOW_SMTP_PORT=587
+AIRFLOW_SMTP_USER=you@example.com
+AIRFLOW_SMTP_PASSWORD=your-app-password
+AIRFLOW_SMTP_MAIL_FROM=you@example.com
+AIRFLOW_SMTP_STARTTLS=True
+AIRFLOW_SMTP_SSL=False
+```
+
+For Gmail, use an app password instead of your normal account password. If `AIRFLOW_ALERT_EMAIL_TO` is empty, the DAG skips email and logs that notifications are disabled.
 
 ## Manual Runs
 

@@ -8,6 +8,7 @@ An interview-ready near real-time data engineering project for an e-commerce dom
 PostgreSQL -> Debezium -> Kafka -> Python Consumer -> BigQuery Bronze
                                                    -> Dataform Silver/Gold
                                                    -> Airflow orchestration
+                                                   -> Email notifications
 ```
 
 Local Docker services:
@@ -128,6 +129,7 @@ bronze_ready -> run_dataform_silver -> run_dataform_gold -> run_dq_checks -> not
 ```
 
 Airflow does not orchestrate Debezium, Kafka, or the Python streaming consumer.
+The `notify` step sends a success email when SMTP settings are configured, and the DAG-level failure callback sends a failure email after retries are exhausted.
 
 Trigger a manual transformation run:
 
@@ -135,7 +137,7 @@ Trigger a manual transformation run:
 docker compose exec airflow airflow dags trigger dataform_bronze_to_gold
 ```
 
-See `docs/airflow.md` for UI access, local testing, retries, and failure visibility.
+See `docs/airflow.md` for UI access, local testing, retries, failure visibility, and email notification setup.
 
 ## Demo Scenarios
 
@@ -206,7 +208,3 @@ The connector captures `customers`, `products`, `orders`, `order_items`, and `pa
 - `postgres.payments`
 
 More details are in `docs/debezium.md`.
-
-## Current Status
-
-Stories 1 through 12 create the Docker Compose foundation, PostgreSQL source database, Debezium CDC setup, BigQuery Bronze table definition, streaming Python BigQuery consumer, Dataform project scaffold, Silver current-state tables, Gold dimensions with SCD Type 2 customer history, Gold fact tables, an Airflow DAG for scheduled Dataform orchestration, Data Quality checks that fail the DAG when Silver or Gold outputs are invalid, and demo scenarios that show the pipeline end to end.

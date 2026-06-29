@@ -8,6 +8,8 @@ from pathlib import Path
 from airflow import DAG
 from airflow.exceptions import AirflowException
 from airflow.operators.python import PythonOperator
+from airflow.operators.python import get_current_context
+from airflow.utils.email import send_email
 from google.cloud import bigquery
 
 
@@ -20,6 +22,7 @@ DATAFORM_CREDENTIALS_PATH = DATAFORM_PROJECT_DIR / ".df-credentials.json"
 SERVICE_ACCOUNT_PATH = Path(
     os.getenv("GOOGLE_APPLICATION_CREDENTIALS", "/opt/project/bigquery/service_account.json")
 )
+ALERT_EMAIL_TO = os.getenv("AIRFLOW_ALERT_EMAIL_TO", "")
 
 logger = logging.getLogger(__name__)
 
@@ -120,11 +123,57 @@ def run_dq_checks() -> None:
     )
 
 
+def email_recipients() -> list[str]:
+    return [email.strip() for email in ALERT_EMAIL_TO.split(",") if email.strip()]
+
+
+def send_dag_email(subject: str, html_content: str) -> None:
+    recipients = email_recipients()
+    if not recipients:
+        logger.info("Skipping email notification because AIRFLOW_ALERT_EMAIL_TO is not set.")
+        return
+
+    logger.info("Sending DAG email notification to %s", recipients)
+    send_email(to=recipients, subject=subject, html_content=html_content)
+
+
+def notify_failure(context: dict) -> None:
+    task_instance = context.get("task_instance")
+    dag_run = context.get("dag_run")
+    exception = context.get("exception")
+
+    send_dag_email(
+        subject=f"[Airflow] FAILED: {context['dag'].dag_id}",
+        html_content=f"""
+            <h3>Dataform transformation DAG failed</h3>
+            <p><strong>DAG:</strong> {context['dag'].dag_id}</p>
+            <p><strong>Task:</strong> {task_instance.task_id if task_instance else "unknown"}</p>
+            <p><strong>Run:</strong> {dag_run.run_id if dag_run else "unknown"}</p>
+            <p><strong>Project:</strong> {PROJECT_ID}</p>
+            <p><strong>Location:</strong> {BIGQUERY_LOCATION}</p>
+            <p><strong>Error:</strong> {exception}</p>
+        """,
+    )
+
+
 def notify() -> None:
+    context = get_current_context()
+    dag_run = context.get("dag_run")
+
     logger.info(
         "Dataform transformation DAG completed successfully for project=%s location=%s",
         PROJECT_ID,
         BIGQUERY_LOCATION,
+    )
+    send_dag_email(
+        subject=f"[Airflow] SUCCESS: {context['dag'].dag_id}",
+        html_content=f"""
+            <h3>Dataform transformation DAG completed successfully</h3>
+            <p><strong>DAG:</strong> {context['dag'].dag_id}</p>
+            <p><strong>Run:</strong> {dag_run.run_id if dag_run else "unknown"}</p>
+            <p><strong>Project:</strong> {PROJECT_ID}</p>
+            <p><strong>Location:</strong> {BIGQUERY_LOCATION}</p>
+        """,
     )
 
 
@@ -136,6 +185,7 @@ with DAG(
     schedule_interval=None,
     catchup=False,
     max_active_runs=1,
+    on_failure_callback=notify_failure,
     tags=["cdc", "dataform", "bigquery"],
 ) as dag:
     bronze_ready_task = PythonOperator(
