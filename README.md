@@ -10,6 +10,9 @@ PostgreSQL -> Debezium -> Kafka -> Python Consumer -> BigQuery Bronze
                                                    -> Airflow orchestration
 ```
 
+<img width="1173" height="303" alt="image" src="https://github.com/user-attachments/assets/a0f64980-86d2-4a58-909e-e105c62ad071" />
+
+
 Local Docker services:
 
 - `postgres`
