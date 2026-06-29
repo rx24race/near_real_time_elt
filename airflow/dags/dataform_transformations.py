@@ -40,6 +40,8 @@ def bigquery_client() -> bigquery.Client:
 
 
 def bronze_ready() -> None:
+    # The transformation DAG should only run after the streaming consumer has
+    # landed at least one CDC event in Bronze.
     table_id = f"`{PROJECT_ID}.{BRONZE_DATASET}.{BRONZE_TABLE}`"
     query = f"SELECT COUNT(*) AS row_count FROM {table_id}"
     rows = list(bigquery_client().query(query))
@@ -54,6 +56,8 @@ def ensure_dataform_credentials() -> None:
     if not SERVICE_ACCOUNT_PATH.exists():
         raise AirflowException(f"Missing service account key: {SERVICE_ACCOUNT_PATH}")
 
+    # Dataform CLI expects a local credentials wrapper. Airflow creates it at
+    # runtime from the mounted service account key so the file stays generated.
     service_account_json = SERVICE_ACCOUNT_PATH.read_text(encoding="utf-8")
     service_account = json.loads(service_account_json)
     credentials = {
@@ -71,6 +75,8 @@ def ensure_dataform_credentials() -> None:
 
 def run_command(command: list[str], cwd: Path) -> None:
     logger.info("Running command: %s", " ".join(command))
+    # Capture stdout/stderr into the task log so Dataform compile or assertion
+    # failures are visible from the Airflow UI during demos.
     completed = subprocess.run(
         command,
         cwd=cwd,
@@ -109,6 +115,8 @@ def run_dataform_gold() -> None:
             str(DATAFORM_PROJECT_DIR),
             "--tags",
             "gold",
+            # Gold models depend on Silver current-state tables, so include-deps
+            # lets Dataform resolve the full dependency path for a Gold run.
             "--include-deps",
         ],
         cwd=Path("/opt/project"),
@@ -130,6 +138,7 @@ def email_recipients() -> list[str]:
 def send_dag_email(subject: str, html_content: str) -> None:
     recipients = email_recipients()
     if not recipients:
+        # Keep notifications optional so the local demo still works without SMTP.
         logger.info("Skipping email notification because AIRFLOW_ALERT_EMAIL_TO is not set.")
         return
 
@@ -138,6 +147,8 @@ def send_dag_email(subject: str, html_content: str) -> None:
 
 
 def notify_failure(context: dict) -> None:
+    # Failure notifications are registered at the DAG level because the terminal
+    # notify task will not run when an upstream transformation task fails.
     task_instance = context.get("task_instance")
     dag_run = context.get("dag_run")
     exception = context.get("exception")
@@ -188,6 +199,8 @@ with DAG(
     on_failure_callback=notify_failure,
     tags=["cdc", "dataform", "bigquery"],
 ) as dag:
+    # Airflow orchestrates transformations only. CDC ingestion is handled by the
+    # always-on Debezium, Kafka, and Python consumer services outside this DAG.
     bronze_ready_task = PythonOperator(
         task_id="bronze_ready",
         python_callable=bronze_ready,
