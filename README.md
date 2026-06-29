@@ -1,6 +1,6 @@
-# CDC-to-BigQuery Lakehouse Data Engineering Project
+# CDC-to-BigQuery Data Engineering Project
 
-An interview-ready near real-time data engineering project for an e-commerce domain.
+A near real-time data engineering project for an e-commerce domain.
 
 ## Architecture
 
