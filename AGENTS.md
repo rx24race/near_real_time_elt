@@ -15,6 +15,7 @@ Build an interview-ready end-to-end CDC data engineering project demonstrating:
 ## Architecture Constraints
 
 * Runtime services run locally via Docker; BigQuery is the managed cloud warehouse.
+* The optional `csv_etl/` exercise is a standalone local Python command using embedded DuckDB SQL and offline HTML reporting. It is a non-service exception to the Docker guideline; it must remain independent of the CDC services and cloud credentials.
 * Dataform CLI runs inside the local Airflow container and submits SQL to BigQuery. The current workflow does not use Cloud Dataform workflow invocations.
 
 * Use an e-commerce domain.

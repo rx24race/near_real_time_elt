@@ -37,7 +37,16 @@ dataform/     Dataform project files
 bigquery/     BigQuery DDL for external warehouse objects
 scripts/      Local setup and demo helper scripts
 docs/         Interview notes, diagrams, and troubleshooting
+csv_etl/      Optional standalone DuckDB SQL CSV exercise and offline HTML report
 ```
+
+## Optional: DuckDB CSV ETL Exercise
+
+For a smaller local exercise that does not require the CDC stack, see
+[`csv_etl/README.md`](csv_etl/README.md). It transforms a 60-row, 10-column
+e-commerce CSV using DuckDB SQL and produces cleaned/rejected CSVs plus a
+self-contained HTML status dashboard. It runs independently of Docker, Airflow,
+and BigQuery; the streaming pipeline described below is unchanged.
 
 ## Quick Start
 

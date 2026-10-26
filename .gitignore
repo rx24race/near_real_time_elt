@@ -151,6 +151,7 @@ activemq-data/
 .env
 .envrc
 .venv
+/csv_etl/output/
 consumer/credentials/
 bigquery/*.json
 dataform/.df-credentials.json
